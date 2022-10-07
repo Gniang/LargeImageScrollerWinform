@@ -49,7 +49,7 @@ namespace WinFormsApp1
         private void CreateBaseImage2()
         {
             // Create an image and fill it blue
-            SKBitmap bmp = new(IMG_SIZE.Width, IMG_SIZE.Height);
+            using SKBitmap bmp = new(IMG_SIZE.Width, IMG_SIZE.Height);
             using SKCanvas canvas = new(bmp);
             canvas.Clear(SKColor.Parse("#003366"));
 
@@ -71,9 +71,9 @@ namespace WinFormsApp1
 
         private void CreateBaseImage()
         {
-            var redStroke = new SKPaint() { Color = SKColor.Parse("FF0000") };
-            var skyPen = new SKPaint() { Color = SKColor.Parse("0088AA") };
-            var dotStroke = new SKPaint()
+            using var redStroke = new SKPaint() { Color = SKColor.Parse("FF0000") };
+            using var skyPen = new SKPaint() { Color = SKColor.Parse("0088AA") };
+            using var dotStroke = new SKPaint()
             {
                 Color = SKColor.Parse("FF0000"),
                 PathEffect = SKPathEffect.CreateDash(new[] { 2f, 2f }, 0)
@@ -81,12 +81,12 @@ namespace WinFormsApp1
 
 
             var info = new SkiaSharp.SKImageInfo() { Width = IMG_SIZE.Width, Height = IMG_SIZE.Height };
-            SKBitmap bmp = new(info);
+            using SKBitmap bmp = new(info);
             //var img = SkiaSharp.SKSurface.Create(info);
 
 
             //SKSurface surface = ;
-            SKCanvas canvas = new(bmp);
+            using SKCanvas canvas = new(bmp);
             canvas.Clear();
 
             // Translate to center
@@ -120,12 +120,10 @@ namespace WinFormsApp1
             canvas.DrawLine(point2.X, point2.Y, point1.X, point1.Y, dotStroke);
 
             // Draw the conic
-            using (SKPath path = new SKPath())
-            {
-                path.MoveTo(point0);
-                path.ConicTo(point1, point2, weight);
-                canvas.DrawPath(path, redStroke);
-            }
+            using SKPath path = new ();
+            path.MoveTo(point0);
+            path.ConicTo(point1, point2, weight);
+            canvas.DrawPath(path, redStroke);
 
 
             bmp.Encode(new SKFileWStream("./test.png"), SKEncodedImageFormat.Png, quality: 100);

@@ -5,8 +5,12 @@ namespace WinFormsApp1
 {
     public partial class Form1 : Form
     {
-        private bool _isFirst = true;
         private SKBitmap? _bmp;
+
+        private static readonly SKSizeI IMG_SIZE  = new (200_000, 200);
+
+        // jpegå`éÆÇ»Ç«ÇÕècâ°65535Ç‹Ç≈ÇÃãKäiÇ»ÇÃÇ≈pngÇ≠ÇÁÇ¢ÇµÇ©égÇ¶Ç»Ç¢
+        private static readonly String IMG_PATH = "quickstart.png";
 
         public Form1()
         {
@@ -17,8 +21,9 @@ namespace WinFormsApp1
             this.skControl1.PaintSurface += sk_Paint;
 
             this.hScrollBar1.Minimum = 0;
-            this.hScrollBar1.Maximum = 200_000;
+            this.hScrollBar1.Maximum = IMG_SIZE.Width;
             this.hScrollBar1.LargeChange = this.hScrollBar1.Maximum / 20;
+            this.hScrollBar1.Maximum = IMG_SIZE.Width + this.hScrollBar1.LargeChange;
             this.hScrollBar1.ValueChanged += (s, e) => { skControl1.Invalidate(); };
 
 
@@ -32,9 +37,9 @@ namespace WinFormsApp1
 
             if (_bmp is null)
             {
-                _bmp = SKBitmap.Decode("quickstart.png");
+                _bmp = SKBitmap.Decode(IMG_PATH);
             }
-            c.DrawBitmap(_bmp, -this.hScrollBar1.Value, 0);
+            c.DrawBitmap(_bmp, -Math.Min(this.hScrollBar1.Value, IMG_SIZE.Width-this.skControl1.ClientRectangle.Width), 0);
         }
 
         private void Form_Load(object? sender, EventArgs e)
@@ -44,7 +49,7 @@ namespace WinFormsApp1
         private void CreateBaseImage2()
         {
             // Create an image and fill it blue
-            SKBitmap bmp = new(200_000, 200);
+            SKBitmap bmp = new(IMG_SIZE.Width, IMG_SIZE.Height);
             using SKCanvas canvas = new(bmp);
             canvas.Clear(SKColor.Parse("#003366"));
 
@@ -60,8 +65,7 @@ namespace WinFormsApp1
             }
 
             // Save the image to disk
-            // jpegå`éÆÇ»Ç«ÇÕècâ°65535Ç‹Ç≈ÇÃãKäiÇ»ÇÃÇ≈pngÇ≠ÇÁÇ¢ÇµÇ©égÇ¶Ç»Ç¢
-            SKFileWStream fs = new("quickstart.png");
+            SKFileWStream fs = new(IMG_PATH);
             bmp.Encode(fs, SKEncodedImageFormat.Png, quality: 85);
         }
 
@@ -76,7 +80,7 @@ namespace WinFormsApp1
             };
 
 
-            var info = new SkiaSharp.SKImageInfo() { Width = 200_000, Height = 200 };
+            var info = new SkiaSharp.SKImageInfo() { Width = IMG_SIZE.Width, Height = IMG_SIZE.Height };
             SKBitmap bmp = new(info);
             //var img = SkiaSharp.SKSurface.Create(info);
 

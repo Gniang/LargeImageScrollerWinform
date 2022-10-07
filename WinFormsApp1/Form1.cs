@@ -1,3 +1,5 @@
+using NumSharp;
+using NumSharp.Generic;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
@@ -7,7 +9,7 @@ namespace WinFormsApp1
     {
         private SKBitmap? _bmp;
 
-        private static readonly SKSizeI IMG_SIZE  = new (200_000, 200);
+        private static readonly SKSizeI IMG_SIZE = new(200_000, 200);
 
         // jpegŒ`Ž®‚È‚Ç‚Íc‰¡65535‚Ü‚Å‚Ì‹KŠi‚È‚Ì‚Åpng‚­‚ç‚¢‚µ‚©Žg‚¦‚È‚¢
         private static readonly String IMG_PATH = "quickstart.png";
@@ -24,10 +26,24 @@ namespace WinFormsApp1
             this.hScrollBar1.Maximum = IMG_SIZE.Width;
             this.hScrollBar1.LargeChange = this.hScrollBar1.Maximum / 20;
             this.hScrollBar1.Maximum = IMG_SIZE.Width + this.hScrollBar1.LargeChange;
-            this.hScrollBar1.ValueChanged += (s, e) => { skControl1.Invalidate(); };
-
+            this.hScrollBar1.ValueChanged += (s, e) => { 
+                skControl1.Invalidate(); 
+                formsPlot1.Plot.XAxis.
+            };
 
             CreateBaseImage2();
+            _bmp = SKBitmap.Decode(IMG_PATH);
+
+            //this.formsPlot1.Plot.AddImage(_bmp.ToBitmap(), 0, 0, anchor:ScottPlot.Alignment.LowerLeft);
+            foreach (var i in Enumerable.Range(0, 20))
+            {
+                const int widthSize = 10_000;
+                double[,] heatmapVal = (double[,])np.random.rand(100, widthSize).ToMuliDimArray<double>();
+                var hm = this.formsPlot1.Plot.AddHeatmap(heatmapVal, lockScales: false);
+                hm.XMin = i * widthSize;
+                hm.XMax = (i + 1) * widthSize - 1;
+            }
+            this.formsPlot1.Refresh();
         }
 
         private void sk_Paint(object? sender, SKPaintSurfaceEventArgs e)
@@ -37,9 +53,10 @@ namespace WinFormsApp1
 
             if (_bmp is null)
             {
-                _bmp = SKBitmap.Decode(IMG_PATH);
+                return;
             }
-            c.DrawBitmap(_bmp, -Math.Min(this.hScrollBar1.Value, IMG_SIZE.Width-this.skControl1.ClientRectangle.Width), 0);
+            return;
+            c.DrawBitmap(_bmp, -Math.Min(this.hScrollBar1.Value, IMG_SIZE.Width - this.skControl1.ClientRectangle.Width), 0);
         }
 
         private void Form_Load(object? sender, EventArgs e)
@@ -120,7 +137,7 @@ namespace WinFormsApp1
             canvas.DrawLine(point2.X, point2.Y, point1.X, point1.Y, dotStroke);
 
             // Draw the conic
-            using SKPath path = new ();
+            using SKPath path = new();
             path.MoveTo(point0);
             path.ConicTo(point1, point2, weight);
             canvas.DrawPath(path, redStroke);

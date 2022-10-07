@@ -30,15 +30,16 @@
         {
             this.skControl1 = new SkiaSharp.Views.Desktop.SKControl();
             this.hScrollBar1 = new System.Windows.Forms.HScrollBar();
+            this.formsPlot1 = new ScottPlot.FormsPlot();
             this.SuspendLayout();
             // 
             // skControl1
             // 
             this.skControl1.BackColor = System.Drawing.Color.Snow;
-            this.skControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.skControl1.Dock = System.Windows.Forms.DockStyle.Top;
             this.skControl1.Location = new System.Drawing.Point(0, 0);
             this.skControl1.Name = "skControl1";
-            this.skControl1.Size = new System.Drawing.Size(800, 433);
+            this.skControl1.Size = new System.Drawing.Size(800, 122);
             this.skControl1.TabIndex = 0;
             this.skControl1.Text = "skControl1";
             // 
@@ -50,11 +51,21 @@
             this.hScrollBar1.Size = new System.Drawing.Size(800, 17);
             this.hScrollBar1.TabIndex = 1;
             // 
+            // formsPlot1
+            // 
+            this.formsPlot1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.formsPlot1.Location = new System.Drawing.Point(0, 122);
+            this.formsPlot1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.formsPlot1.Name = "formsPlot1";
+            this.formsPlot1.Size = new System.Drawing.Size(800, 311);
+            this.formsPlot1.TabIndex = 2;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.formsPlot1);
             this.Controls.Add(this.skControl1);
             this.Controls.Add(this.hScrollBar1);
             this.Name = "Form1";
@@ -67,5 +78,6 @@
 
         private SkiaSharp.Views.Desktop.SKControl skControl1;
         private HScrollBar hScrollBar1;
+        private ScottPlot.FormsPlot formsPlot1;
     }
 }

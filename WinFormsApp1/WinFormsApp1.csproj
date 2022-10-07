@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NumSharp" Version="0.30.0" />
     <PackageReference Include="ScottPlot.WinForms" Version="4.1.58" />
     <PackageReference Include="SkiaSharp" Version="2.88.3" />
     <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="2.88.3" />

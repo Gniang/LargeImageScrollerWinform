@@ -12,15 +12,89 @@ namespace WinFormsApp1
         private SKBitmap? _bmp;
         private Dictionary<int, OffsetHeatmap> _heatmaps;
 
+        // Controls
+
+        private readonly TableLayoutPanel tlpPlots;
+        private readonly TextBoxEx txtOffsetX;
+        private readonly TextBoxEx txtZoomX;
+        private readonly TableLayoutPanel tlpCommands;
+        private readonly HScrollBar hScrollBar;
 
         public Form1()
         {
             InitializeComponent();
+
+            // コマンドパネル作成
+            this.txtOffsetX = Input();
+            this.txtZoomX = Input();
+            this.tlpCommands = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 32,
+            };
+            this.tlpCommands.RowStyles.Clear();
+            this.tlpCommands.ColumnStyles.Clear();
+
+            this.tlpCommands.RowCount = 1;
+            var cmdColumns = new (Control?, ColumnStyle)[]
+            {
+                (Label(text: "オフセット[m]"), ColStyleAbs(100)),
+                (this.txtOffsetX, ColStyleAbs(160)),
+                (null, ColStyleAbs(20)),
+                (Label(text: "Zoom[m]"), ColStyleAbs(100)),
+                (this.txtZoomX, ColStyleAbs(160)),
+                (null, new ColumnStyle{ SizeType = SizeType.AutoSize }),
+            }
+            .ToList();
+            this.tlpCommands.ColumnCount = cmdColumns.Count();
+            foreach (var (item, i) in cmdColumns.Indexed())
+            {
+                var (ctl, style) = item;
+                this.tlpCommands.ColumnStyles.Add(style);
+                if (ctl != null)
+                {
+                    this.tlpCommands.Controls.Add(ctl, i, 0);
+                }
+            };
+
+            this.tlpPlots = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+            };
+            this.hScrollBar = new HScrollBar
+            {
+                Dock = DockStyle.Bottom,
+            };
+            this.Controls.AddRange(new Control[]
+            {
+                this.tlpCommands,
+                this.tlpPlots,
+                this.hScrollBar
+            });
+
+
             this.Load += Form_Load;
+        }
+
+
+
+        private ColumnStyle ColStyleAbs(float width)
+        {
+            return new ColumnStyle { SizeType = SizeType.Absolute, Width = width };
+        }
+
+        private Label Label(string text)
+        {
+            return new Label { Text = text, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight, };
+        }
+        private TextBoxEx Input()
+        {
+            return new TextBoxEx() { Dock = DockStyle.Fill };
         }
 
         private void Form_Load(object? sender, EventArgs e)
         {
+            const double defaultZoom = 200;
             _heatmaps = new Dictionary<int, OffsetHeatmap>();
 
             // プロットｎ個
@@ -43,17 +117,6 @@ namespace WinFormsApp1
             //this.skControl1.PaintSurface += sk_Paint;
             //CreateBaseImage2();
             //_bmp = SKBitmap.Decode(IMG_PATH);
-
-
-            // オフセット値を変えたら、1つ目のプロットだけｘ座標をずらす
-            this.txtOffsetX.TextChanged += (s, e) =>
-            {
-                if (int.TryParse(this.txtOffsetX.Text, out int v))
-                {
-                    _heatmaps[0].SetXOffset(v);
-                    _heatmaps[0].Plot.Refresh();
-                }
-            };
 
             // プロットのデータをランダム値のヒートマップで作る
             foreach (var (plot, i) in plots.Indexed())
@@ -79,21 +142,45 @@ namespace WinFormsApp1
             };
 
 
+            // オフセット値を変えたら、1つ目のプロットだけｘ座標をずらす
+            this.txtOffsetX.TextChanged += (s, e) =>
+            {
+                if (double.TryParse(this.txtOffsetX.Text, out double v))
+                {
+                    _heatmaps[0].SetXOffset(v);
+                    _heatmaps[0].Refresh();
+                }
+            };
+
+            // ズーム範囲を変えたら、全体のプロットの表示範囲を変える
+            this.txtZoomX.TextChanged += (s, e) =>
+            {
+                if (double.TryParse(this.txtZoomX.Text, out double v))
+                {
+                    foreach (var hm in _heatmaps.Values)
+                    {
+                        hm.SetXZoom(v);
+                        hm.Refresh();
+                    }
+                }
+            };
+
             // スクロールバーの位置にプロットの表示範囲が同期するようにする
-            this.hScrollBar1.Minimum = 0;
-            this.hScrollBar1.Maximum = Constants.IMG_SIZE.Width;
-            this.hScrollBar1.LargeChange = this.hScrollBar1.Maximum / 20;
-            this.hScrollBar1.Maximum = Constants.IMG_SIZE.Width + this.hScrollBar1.LargeChange;
-            this.hScrollBar1.ValueChanged += (s, e) =>
+            this.hScrollBar.Minimum = 0;
+            this.hScrollBar.Maximum = Constants.IMG_SIZE.Width;
+            this.hScrollBar.LargeChange = this.hScrollBar.Maximum / 20;
+            this.hScrollBar.Maximum = Constants.IMG_SIZE.Width + this.hScrollBar.LargeChange;
+            this.hScrollBar.ValueChanged += (s, e) =>
             {
                 //skControl1.Invalidate();
-                var x = Math.Min(this.hScrollBar1.Value, Constants.IMG_SIZE.Width - this.tlpPlots.ClientRectangle.Width);
-                plots.ForEach(plot =>
+                var x = Math.Min(this.hScrollBar.Value, Constants.IMG_SIZE.Width - this.tlpPlots.ClientRectangle.Width);
+                foreach (var hm in _heatmaps.Values)
                 {
-                    plot.Plot.SetAxisLimits(xMin: x, xMax: x + 2_000, yMin: 0, yMax: Constants.IMG_SIZE.Height);
-                    plot.Refresh();
-                });
+                    hm.SetXMin(x);
+                    hm.Refresh();
+                };
             };
+            txtZoomX.Text = defaultZoom.ToString();
         }
 
 
@@ -107,7 +194,7 @@ namespace WinFormsApp1
                 return;
             }
             return;
-            c.DrawBitmap(_bmp, -Math.Min(this.hScrollBar1.Value, Constants.IMG_SIZE.Width - this.ClientRectangle.Width), 0);
+            c.DrawBitmap(_bmp, -Math.Min(this.hScrollBar.Value, Constants.IMG_SIZE.Width - this.ClientRectangle.Width), 0);
         }
 
 

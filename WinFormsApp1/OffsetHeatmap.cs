@@ -14,9 +14,12 @@ namespace WinFormsApp1
     public class OffsetHeatmap
     {
         private readonly IEnumerable<Heatmap> heatmaps;
-        private double xOffsetMeter;
+        private double xOffsetMeter = 0;
+        private double xMin;
+        private double xZoomMeter = 0;
 
         public Double XOffsetPixel => xOffsetMeter * Constants.PIXEL_PER_METER;
+        public Double XZoomPixel => xZoomMeter * Constants.PIXEL_PER_METER;
 
         public FormsPlot Plot { get; }
 
@@ -42,6 +45,51 @@ namespace WinFormsApp1
                 hm.XMin += changedOffset;
                 hm.XMax += changedOffset;
             }
+        }
+
+        /// <summary>
+        /// WindowsFormのPlotコントロールを再描画する
+        /// </summary>
+        public void Refresh()
+        {
+            this.Plot.Refresh();
+        }
+
+        /// <summary>
+        /// X軸の表示範囲をメートル単位で指定する
+        /// </summary>
+        /// <param name="xMeter"></param>
+        public void SetXZoom(double xMeter)
+        {
+            this.xZoomMeter = xMeter;
+            ResetAxisLimits();
+        }
+
+        /// <summary>
+        /// X軸の開始位置をピクセル単位で指定する
+        /// </summary>
+        /// <param name="xPixel"></param>
+        public void SetXMin(double xPixel)
+        {
+            this.xMin = xPixel;
+            ResetAxisLimits();
+        }
+
+        /// <summary>
+        /// 表示範囲を指定する
+        /// </summary>
+        private void ResetAxisLimits()
+        {
+            if(this.XZoomPixel == 0)
+            {
+                return;
+            }
+
+            this.Plot.Plot.SetAxisLimits(
+                xMin: this.xMin,
+                xMax: this.xMin + this.XZoomPixel,
+                yMin: 0,
+                yMax: Constants.IMG_SIZE.Height);
         }
     }
 

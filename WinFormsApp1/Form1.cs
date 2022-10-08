@@ -20,31 +20,59 @@ namespace WinFormsApp1
 
             this.Load += Form_Load;
 
-            this.skControl1.PaintSurface += sk_Paint;
+
+            var plots = Enumerable.Range(0, 2)
+                .Select(x => new ScottPlot.FormsPlot() { Dock = DockStyle.Fill })
+                .ToList();
+
+            this.tlpPlots.RowStyles.Clear();
+            this.tlpPlots.RowCount = plots.Count;
+            this.tlpPlots.ColumnStyles.Clear();
+            this.tlpPlots.ColumnCount = 1;
+            foreach (var (plot, i) in plots.Indexed())
+            {
+                this.tlpPlots.RowStyles.Add(new RowStyle() { SizeType = SizeType.Percent, Height = 1.0f / plots.Count });
+                this.tlpPlots.Controls.Add(plot, column: 0, row: i);
+            }
+
+            //this.skControl1.PaintSurface += sk_Paint;
 
             this.hScrollBar1.Minimum = 0;
             this.hScrollBar1.Maximum = IMG_SIZE.Width;
             this.hScrollBar1.LargeChange = this.hScrollBar1.Maximum / 20;
             this.hScrollBar1.Maximum = IMG_SIZE.Width + this.hScrollBar1.LargeChange;
-            this.hScrollBar1.ValueChanged += (s, e) => { 
-                skControl1.Invalidate(); 
-                formsPlot1.Plot.XAxis.
+            this.hScrollBar1.ValueChanged += (s, e) =>
+            {
+                //skControl1.Invalidate();
+                var x = Math.Min(this.hScrollBar1.Value, IMG_SIZE.Width - this.tlpPlots.ClientRectangle.Width);
+                plots.ForEach(plot =>
+                {
+                    plot.Plot.SetAxisLimits(xMin: x, xMax: x + 2_000, yMin: 0, yMax: 200);
+                    plot.Refresh();
+                });
             };
 
-            CreateBaseImage2();
-            _bmp = SKBitmap.Decode(IMG_PATH);
+            //CreateBaseImage2();
+            //_bmp = SKBitmap.Decode(IMG_PATH);
 
-            //this.formsPlot1.Plot.AddImage(_bmp.ToBitmap(), 0, 0, anchor:ScottPlot.Alignment.LowerLeft);
-            foreach (var i in Enumerable.Range(0, 20))
+
+            plots.ForEach(plot =>
             {
-                const int widthSize = 10_000;
-                double[,] heatmapVal = (double[,])np.random.rand(100, widthSize).ToMuliDimArray<double>();
-                var hm = this.formsPlot1.Plot.AddHeatmap(heatmapVal, lockScales: false);
-                hm.XMin = i * widthSize;
-                hm.XMax = (i + 1) * widthSize - 1;
-            }
-            this.formsPlot1.Refresh();
+                foreach (var i in Enumerable.Range(0, 20))
+                {
+                    const int widthSize = 10_000;
+                    double[,] heatmapVal = (double[,])np.random.rand(200, widthSize).ToMuliDimArray<double>();
+                    var hm = plot.Plot.AddHeatmap(heatmapVal, lockScales: false);
+                    hm.XMin = i * widthSize;
+                    hm.XMax = (i + 1) * widthSize - 1;
+                }
+                plot.Plot.XAxis.TickLabelFormat(x => $"{x / 200:0}m");
+                plot.Plot.YAxis.TickLabelFormat(y => $"{y / 200:0.00}m");
+                plot.Plot.SetAxisLimits(xMin: 0, xMax: 2_000, yMin: 0, yMax: 200);
+                plot.Refresh();
+            });
         }
+
 
         private void sk_Paint(object? sender, SKPaintSurfaceEventArgs e)
         {
@@ -56,7 +84,7 @@ namespace WinFormsApp1
                 return;
             }
             return;
-            c.DrawBitmap(_bmp, -Math.Min(this.hScrollBar1.Value, IMG_SIZE.Width - this.skControl1.ClientRectangle.Width), 0);
+            c.DrawBitmap(_bmp, -Math.Min(this.hScrollBar1.Value, IMG_SIZE.Width - this.ClientRectangle.Width), 0);
         }
 
         private void Form_Load(object? sender, EventArgs e)

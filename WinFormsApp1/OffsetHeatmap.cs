@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace WinFormsApp1
 {
     /// <summary>
-    /// オフセット位置を指定できるScottPlotのヒートマップ
+    /// 表示範囲、表示位置を指定できるScottPlotのヒートマップ（WinForms用）
     /// </summary>
     public class OffsetHeatmap
     {

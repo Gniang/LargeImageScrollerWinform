@@ -9,6 +9,10 @@ namespace WinFormsApp1
 {
     public static partial class EnumerableExtensions
     {
+        /// <summary>
+        /// インデックス付要素
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         public struct IndexedEnumerable<T> : IEnumerable<(T item, int index)>
         {
             private IEnumerable<T> _e;
@@ -21,6 +25,9 @@ namespace WinFormsApp1
             IEnumerator<(T item, int index)> IEnumerable<(T item, int index)>.GetEnumerator() => GetEnumerator();
         }
 
+        /// <summary>
+        /// インデックス付要素
+        /// </summary>
         public struct IndexedEnumerator<T> : IEnumerator<(T item, int index)>
         {
             public (T item, int index) Current => (_e.Current, _i);
@@ -45,6 +52,9 @@ namespace WinFormsApp1
             public void Reset() { throw new NotImplementedException(); }
         }
 
+        /// <summary>
+        /// インデックス付要素を取得する
+        /// </summary>
         public static IndexedEnumerable<T> Indexed<T>(this IEnumerable<T> source)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));

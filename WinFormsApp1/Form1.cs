@@ -1,5 +1,7 @@
 using NumSharp;
 using NumSharp.Generic;
+using ScottPlot;
+using ScottPlot.Plottable;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
@@ -8,23 +10,25 @@ namespace WinFormsApp1
     public partial class Form1 : Form
     {
         private SKBitmap? _bmp;
+        private Dictionary<int, OffsetHeatmap> _heatmaps;
 
-        private static readonly SKSizeI IMG_SIZE = new(200_000, 200);
-
-        // jpeg形式などは縦横65535までの規格なのでpngくらいしか使えない
-        private static readonly String IMG_PATH = "quickstart.png";
 
         public Form1()
         {
             InitializeComponent();
-
             this.Load += Form_Load;
+        }
 
+        private void Form_Load(object? sender, EventArgs e)
+        {
+            _heatmaps = new Dictionary<int, OffsetHeatmap>();
 
+            // プロットｎ個
             var plots = Enumerable.Range(0, 2)
                 .Select(x => new ScottPlot.FormsPlot() { Dock = DockStyle.Fill })
                 .ToList();
 
+            // プロットを縦にならべる
             this.tlpPlots.RowStyles.Clear();
             this.tlpPlots.RowCount = plots.Count;
             this.tlpPlots.ColumnStyles.Clear();
@@ -35,42 +39,61 @@ namespace WinFormsApp1
                 this.tlpPlots.Controls.Add(plot, column: 0, row: i);
             }
 
+            //// 200_000x200pxの画像を作成、表示してみる。
             //this.skControl1.PaintSurface += sk_Paint;
-
-            this.hScrollBar1.Minimum = 0;
-            this.hScrollBar1.Maximum = IMG_SIZE.Width;
-            this.hScrollBar1.LargeChange = this.hScrollBar1.Maximum / 20;
-            this.hScrollBar1.Maximum = IMG_SIZE.Width + this.hScrollBar1.LargeChange;
-            this.hScrollBar1.ValueChanged += (s, e) =>
-            {
-                //skControl1.Invalidate();
-                var x = Math.Min(this.hScrollBar1.Value, IMG_SIZE.Width - this.tlpPlots.ClientRectangle.Width);
-                plots.ForEach(plot =>
-                {
-                    plot.Plot.SetAxisLimits(xMin: x, xMax: x + 2_000, yMin: 0, yMax: 200);
-                    plot.Refresh();
-                });
-            };
-
             //CreateBaseImage2();
             //_bmp = SKBitmap.Decode(IMG_PATH);
 
 
-            plots.ForEach(plot =>
+            // オフセット値を変えたら、1つ目のプロットだけｘ座標をずらす
+            this.txtOffsetX.TextChanged += (s, e) =>
             {
-                foreach (var i in Enumerable.Range(0, 20))
+                if (int.TryParse(this.txtOffsetX.Text, out int v))
+                {
+                    _heatmaps[0].SetXOffset(v);
+                    _heatmaps[0].Plot.Refresh();
+                }
+            };
+
+            // プロットのデータをランダム値のヒートマップで作る
+            foreach (var (plot, i) in plots.Indexed())
+            {
+                var hms = new List<Heatmap>();
+                // 縦横が 65536÷2 以下の必要があるので、とりあえず横10000pxごとに分割して作る （.net のbitmap制約）
+                foreach (var n in Enumerable.Range(0, 20))
                 {
                     const int widthSize = 10_000;
-                    double[,] heatmapVal = (double[,])np.random.rand(200, widthSize).ToMuliDimArray<double>();
+                    double[,] heatmapVal = (double[,])np.random.rand(Constants.IMG_SIZE.Height, widthSize).ToMuliDimArray<double>();
                     var hm = plot.Plot.AddHeatmap(heatmapVal, lockScales: false);
-                    hm.XMin = i * widthSize;
-                    hm.XMax = (i + 1) * widthSize - 1;
+                    hm.XMin = n * widthSize;
+                    hm.XMax = (n + 1) * widthSize - 1;
+                    hms.Add(hm);
                 }
-                plot.Plot.XAxis.TickLabelFormat(x => $"{x / 200:0}m");
-                plot.Plot.YAxis.TickLabelFormat(y => $"{y / 200:0.00}m");
-                plot.Plot.SetAxisLimits(xMin: 0, xMax: 2_000, yMin: 0, yMax: 200);
+
+                _heatmaps.Add(i, new OffsetHeatmap(plot, hms));
+
+                plot.Plot.XAxis.TickLabelFormat(x => $"{x / Constants.PIXEL_PER_METER:0.0}m");
+                plot.Plot.YAxis.TickLabelFormat(y => $"{y / Constants.PIXEL_PER_METER:0.00}m");
+                plot.Plot.SetAxisLimits(xMin: 0, xMax: 2_000, yMin: 0, yMax: Constants.IMG_SIZE.Height);
                 plot.Refresh();
-            });
+            };
+
+
+            // スクロールバーの位置にプロットの表示範囲が同期するようにする
+            this.hScrollBar1.Minimum = 0;
+            this.hScrollBar1.Maximum = Constants.IMG_SIZE.Width;
+            this.hScrollBar1.LargeChange = this.hScrollBar1.Maximum / 20;
+            this.hScrollBar1.Maximum = Constants.IMG_SIZE.Width + this.hScrollBar1.LargeChange;
+            this.hScrollBar1.ValueChanged += (s, e) =>
+            {
+                //skControl1.Invalidate();
+                var x = Math.Min(this.hScrollBar1.Value, Constants.IMG_SIZE.Width - this.tlpPlots.ClientRectangle.Width);
+                plots.ForEach(plot =>
+                {
+                    plot.Plot.SetAxisLimits(xMin: x, xMax: x + 2_000, yMin: 0, yMax: Constants.IMG_SIZE.Height);
+                    plot.Refresh();
+                });
+            };
         }
 
 
@@ -84,17 +107,14 @@ namespace WinFormsApp1
                 return;
             }
             return;
-            c.DrawBitmap(_bmp, -Math.Min(this.hScrollBar1.Value, IMG_SIZE.Width - this.ClientRectangle.Width), 0);
+            c.DrawBitmap(_bmp, -Math.Min(this.hScrollBar1.Value, Constants.IMG_SIZE.Width - this.ClientRectangle.Width), 0);
         }
 
-        private void Form_Load(object? sender, EventArgs e)
-        {
-        }
 
         private void CreateBaseImage2()
         {
             // Create an image and fill it blue
-            using SKBitmap bmp = new(IMG_SIZE.Width, IMG_SIZE.Height);
+            using SKBitmap bmp = new(Constants.IMG_SIZE.Width, Constants.IMG_SIZE.Height);
             using SKCanvas canvas = new(bmp);
             canvas.Clear(SKColor.Parse("#003366"));
 
@@ -110,7 +130,7 @@ namespace WinFormsApp1
             }
 
             // Save the image to disk
-            SKFileWStream fs = new(IMG_PATH);
+            SKFileWStream fs = new(Constants.IMG_PATH);
             bmp.Encode(fs, SKEncodedImageFormat.Png, quality: 85);
         }
 
@@ -125,7 +145,7 @@ namespace WinFormsApp1
             };
 
 
-            var info = new SkiaSharp.SKImageInfo() { Width = IMG_SIZE.Width, Height = IMG_SIZE.Height };
+            var info = new SkiaSharp.SKImageInfo() { Width = Constants.IMG_SIZE.Width, Height = Constants.IMG_SIZE.Height };
             using SKBitmap bmp = new(info);
             //var img = SkiaSharp.SKSurface.Create(info);
 

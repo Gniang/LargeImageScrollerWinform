@@ -24,7 +24,7 @@ namespace WinFormsApp1
         {
             InitializeComponent();
 
-            // ƒRƒ}ƒ“ƒhƒpƒlƒ‹ì¬
+            // ã‚³ãƒãƒ³ãƒ‰ãƒ‘ãƒãƒ«ä½œæˆ
             this.txtOffsetX = Input();
             this.txtZoomX = Input();
             this.tlpCommands = new TableLayoutPanel
@@ -38,7 +38,7 @@ namespace WinFormsApp1
             this.tlpCommands.RowCount = 1;
             var cmdColumns = new (Control?, ColumnStyle)[]
             {
-                (Label(text: "ƒIƒtƒZƒbƒg[m]"), ColStyleAbs(100)),
+                (Label(text: "ã‚ªãƒ•ã‚»ãƒƒãƒˆ[m]"), ColStyleAbs(100)),
                 (this.txtOffsetX, ColStyleAbs(160)),
                 (null, ColStyleAbs(20)),
                 (Label(text: "Zoom[m]"), ColStyleAbs(100)),
@@ -97,12 +97,12 @@ namespace WinFormsApp1
             const double defaultZoom = 200;
             _heatmaps = new Dictionary<int, OffsetHeatmap>();
 
-            // ƒvƒƒbƒg‚ŒÂ
+            // ãƒ—ãƒ­ãƒƒãƒˆï½å€‹
             var plots = Enumerable.Range(0, 2)
                 .Select(x => new ScottPlot.FormsPlot() { Dock = DockStyle.Fill })
                 .ToList();
 
-            // ƒvƒƒbƒg‚ğc‚É‚È‚ç‚×‚é
+            // ãƒ—ãƒ­ãƒƒãƒˆã‚’ç¸¦ã«ãªã‚‰ã¹ã‚‹
             this.tlpPlots.RowStyles.Clear();
             this.tlpPlots.RowCount = plots.Count;
             this.tlpPlots.ColumnStyles.Clear();
@@ -113,16 +113,16 @@ namespace WinFormsApp1
                 this.tlpPlots.Controls.Add(plot, column: 0, row: i);
             }
 
-            //// 200_000x200px‚Ì‰æ‘œ‚ğì¬A•\¦‚µ‚Ä‚İ‚éB
+            //// 200_000x200pxã®ç”»åƒã‚’ä½œæˆã€è¡¨ç¤ºã—ã¦ã¿ã‚‹ã€‚
             //this.skControl1.PaintSurface += sk_Paint;
             //CreateBaseImage2();
             //_bmp = SKBitmap.Decode(IMG_PATH);
 
-            // ƒvƒƒbƒg‚Ìƒf[ƒ^‚ğƒ‰ƒ“ƒ_ƒ€’l‚Ìƒq[ƒgƒ}ƒbƒv‚Åì‚é
+            // ãƒ—ãƒ­ãƒƒãƒˆã®ãƒ‡ãƒ¼ã‚¿ã‚’ãƒ©ãƒ³ãƒ€ãƒ å€¤ã®ãƒ’ãƒ¼ãƒˆãƒãƒƒãƒ—ã§ä½œã‚‹
             foreach (var (plot, i) in plots.Indexed())
             {
                 var hms = new List<Heatmap>();
-                // c‰¡‚ª 65536€2 ˆÈ‰º‚Ì•K—v‚ª‚ ‚é‚Ì‚ÅA‚Æ‚è‚ ‚¦‚¸‰¡10000px‚²‚Æ‚É•ªŠ„‚µ‚Äì‚é i.net ‚Ìbitmap§–ñj
+                // ç¸¦æ¨ªãŒ 65536Ã·2 ä»¥ä¸‹ã®å¿…è¦ãŒã‚ã‚‹ã®ã§ã€ã¨ã‚Šã‚ãˆãšæ¨ª10000pxã”ã¨ã«åˆ†å‰²ã—ã¦ä½œã‚‹ ï¼ˆ.net ã®bitmapåˆ¶ç´„ï¼‰
                 foreach (var n in Enumerable.Range(0, 20))
                 {
                     const int widthSize = 10_000;
@@ -142,7 +142,7 @@ namespace WinFormsApp1
             };
 
 
-            // ƒIƒtƒZƒbƒg’l‚ğ•Ï‚¦‚½‚çA1‚Â–Ú‚Ìƒvƒƒbƒg‚¾‚¯‚˜À•W‚ğ‚¸‚ç‚·
+            // ã‚ªãƒ•ã‚»ãƒƒãƒˆå€¤ã‚’å¤‰ãˆãŸã‚‰ã€1ã¤ç›®ã®ãƒ—ãƒ­ãƒƒãƒˆã ã‘ï½˜åº§æ¨™ã‚’ãšã‚‰ã™
             this.txtOffsetX.TextChanged += (s, e) =>
             {
                 if (double.TryParse(this.txtOffsetX.Text, out double v))
@@ -152,7 +152,7 @@ namespace WinFormsApp1
                 }
             };
 
-            // ƒY[ƒ€”ÍˆÍ‚ğ•Ï‚¦‚½‚çA‘S‘Ì‚Ìƒvƒƒbƒg‚Ì•\¦”ÍˆÍ‚ğ•Ï‚¦‚é
+            // ã‚ºãƒ¼ãƒ ç¯„å›²ã‚’å¤‰ãˆãŸã‚‰ã€å…¨ä½“ã®ãƒ—ãƒ­ãƒƒãƒˆã®è¡¨ç¤ºç¯„å›²ã‚’å¤‰ãˆã‚‹
             this.txtZoomX.TextChanged += (s, e) =>
             {
                 if (double.TryParse(this.txtZoomX.Text, out double v))
@@ -165,7 +165,7 @@ namespace WinFormsApp1
                 }
             };
 
-            // ƒXƒNƒ[ƒ‹ƒo[‚ÌˆÊ’u‚Éƒvƒƒbƒg‚Ì•\¦”ÍˆÍ‚ª“¯Šú‚·‚é‚æ‚¤‚É‚·‚é
+            // ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼ã®ä½ç½®ã«ãƒ—ãƒ­ãƒƒãƒˆã®è¡¨ç¤ºç¯„å›²ãŒåŒæœŸã™ã‚‹ã‚ˆã†ã«ã™ã‚‹
             this.hScrollBar.Minimum = 0;
             this.hScrollBar.Maximum = Constants.IMG_SIZE.Width;
             this.hScrollBar.LargeChange = this.hScrollBar.Maximum / 20;

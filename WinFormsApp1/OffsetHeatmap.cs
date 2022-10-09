@@ -1,4 +1,4 @@
-﻿using ScottPlot;
+using ScottPlot;
 using ScottPlot.Plottable;
 using System;
 using System.Collections.Generic;
@@ -80,7 +80,7 @@ namespace WinFormsApp1
         /// </summary>
         private void ResetAxisLimits()
         {
-            if(this.XZoomPixel == 0)
+            if (this.XZoomPixel == 0)
             {
                 return;
             }
